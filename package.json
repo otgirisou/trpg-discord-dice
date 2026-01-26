@@ -2,13 +2,11 @@
   "name": "trpg-discord-dice",
   "version": "1.0.0",
   "main": "server.js",
+  "type": "commonjs",
   "scripts": {
     "start": "node server.js"
   },
-  "engines": {
-    "node": "16.x"
-  },
   "dependencies": {
-    "discord.js": "11.6.4"
+    "discord.js": "^14.14.1"
   }
 }
