@@ -1,150 +1,96 @@
-const Discord = require("discord.js");
-const client = new Discord.Client();
+const { 
+  Client, 
+  GatewayIntentBits 
+} = require("discord.js");
 
-/* =====================
-   ダメージ辞書
-===================== */
-const damageTable = {
-  "素手": "1D6-2", "パンチ": "1D6-2", "キック": "1D6-2", "頭突き": "1D6-2",
-  "ナックル": "1D6", "スパイク靴": "1D6",
-  "体当たり": "1D6-2",
-  "投げ": "1D6-2", "引き倒し": "1D6-2",
-  "絞め": "1D6", "首絞め": "1D6",
-  "ポケットナイフ": "1D6-2", "小型ナイフ": "1D6-2", "メス": "1D6-2",
-  "ナイフ": "1D6",
-  "軍用ナイフ": "2D6-2", "包丁": "2D6-2",
-  "木刀": "1D6",
-  "フルーレ": "2D6-2", "模造刀": "2D6-2", "仕込み杖": "2D6-2",
-  "サーベル": "2D6", "小太刀": "2D6",
-  "日本刀": "3D6-2", "脇差": "3D6-2",
-  "大太刀": "3D6", "古刀": "3D6", "長脇差": "3D6",
-  "草刈り鎌": "1D6+2", "山刀": "1D6+2", "ナタ": "1D6+2",
-  "手斧": "2D6", "大ナタ": "2D6",
-  "木こり斧": "3D6",
-  "鉄パイプ": "2D6-2",
-  "投石": "1D6",
-  "和弓": "3D6-2",
-  "アーチェリー": "3D6-2",
-  "ボウガン": "3D6",
-  "小口径拳銃": "2D6",
-  "中口径拳銃": "3D6",
-  "大口径拳銃": "3D6+2",
-  "小口径ライフル": "3D6+2",
-  "中口径ライフル": "4D6+2",
-  "小口径ショットガン": "3D6+2",
-  "中口径ショットガン": "4D6+2"
-};
+const client = new Client({
+  intents: [
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.MessageContent
+  ]
+});
 
-/* =====================
-   狂気表
-===================== */
-const shortMadness = [
-  "気絶あるいは金切り声の発作",
-  "パニック状態で逃げ出す",
-  "肉体的なヒステリー、あるいは感情の噴出",
-  "早口で意味不明の会話、多弁症",
-  "極度の恐怖症",
-  "殺人癖あるいは自殺癖",
-  "幻覚あるいは妄想",
-  "反響動作あるいは反響言語",
-  "異様なものを食べたがる",
-  "昏迷あるいは緊張症"
-];
-
-const longMadness = [
-  "健忘症あるいは昏迷/緊張症",
-  "激しい恐怖症",
-  "幻覚",
-  "奇妙な性的嗜好",
-  "フェティッシュ",
-  "制御不能のチックや震え",
-  "心因性視覚障害・難聴・四肢障害",
-  "短時間の心因反応",
-  "一時的偏執症",
-  "強迫観念的行動"
-];
-
-/* =====================
-   Bot起動
-===================== */
-client.on("ready", () => {
-  console.log("Bot起動完了");
+/* =========================
+   起動時
+========================= */
+client.once("ready", () => {
+  console.log("Bot準備完了～");
   client.user.setPresence({
-    game: { name: "TRPG", type: "PLAYING" }
+    activities: [{ name: "TRPGセッション", type: 0 }],
+    status: "online"
   });
 });
 
-/* =====================
+/* =========================
    メッセージ処理
-===================== */
-client.on("message", message => {
+========================= */
+client.on("messageCreate", (message) => {
   if (message.author.bot) return;
 
   const content = message.content.trim();
 
-  /* ダイス計算 */
-  if (/^[0-9dD+\-]+$/.test(content)) {
-    let total = 0;
-    const parts = content.replace(/-/g, "+-").split("+");
+  /* ---- 成功判定 ---- */
+  const successMatch = content.match(/^成功判定\s+(\d{1,3})$/);
+  if (successMatch) {
+    const target = parseInt(successMatch[1], 10);
 
-    let detail = [];
+    if (target < 1 || target > 100) {
+      message.channel.send("目標値は1〜100で指定してください。");
+      return;
+    }
 
-    parts.forEach(p => {
-      if (p.toLowerCase().includes("d")) {
-        const [c, s] = p.toLowerCase().split("d").map(Number);
-        for (let i = 0; i < c; i++) {
-          const r = Math.floor(Math.random() * s) + 1;
-          total += r;
-          detail.push(r);
-        }
-      } else {
-        total += Number(p);
-      }
-    });
-
-    message.channel.send(`🎲 ${content} → [${detail.join(", ")}] = ${total}`);
-    return;
-  }
-
-  /* 成功判定 */
-  if (content.startsWith("成功判定")) {
-    const target = Number(content.replace("成功判定", "").trim());
     const roll = Math.floor(Math.random() * 100) + 1;
 
-    let result = roll <= target ? "成功" : "失敗";
-    if (result === "成功" && roll <= 5) result = "🎉クリティカル！";
-    if (result === "失敗" && roll >= 95) result = "💥ファンブル！";
+    let result = "失敗";
+    if (roll <= target) result = "成功";
 
-    message.channel.send(`🎯 判定: ${roll} / ${target} → ${result}`);
-    return;
-  }
-
-  /* ダメージ辞書 */
-  if (content.startsWith("ダメージ")) {
-    const weapon = content.replace("ダメージ", "").trim();
-    if (damageTable[weapon]) {
-      message.channel.send(`${weapon} / ${damageTable[weapon]}`);
-    } else {
-      message.channel.send("その武器は登録されていません");
+    if (roll <= 5 && roll <= target) {
+      result = "🎉 クリティカル成功！";
+    } else if (roll >= 95 && roll > target) {
+      result = "💥 ファンブル！";
     }
+
+    message.channel.send(
+      `🎯 成功判定（目標値 ${target}）\n出目: ${roll} → ${result}`
+    );
     return;
   }
 
-  /* 狂気ダイス */
-  if (/一時|短期/.test(content)) {
-    const r = Math.floor(Math.random() * 10);
-    message.channel.send(`🌀 狂気: ${shortMadness[r]}`);
-    return;
-  }
+  /* ---- 通常ダイス（1d6 / 1d3+1d4 / 2d6-1 等） ---- */
+  const diceExpr = content.replace(/\s+/g, "");
+  if (/^[0-9dD+\-]+$/.test(diceExpr)) {
+    try {
+      const parts = diceExpr.match(/[+\-]?[^+\-]+/g);
+      let total = 0;
+      let detail = [];
 
-  if (/長期|不定/.test(content)) {
-    const r = Math.floor(Math.random() * 10);
-    message.channel.send(`🌀 狂気: ${longMadness[r]}`);
-    return;
+      for (const part of parts) {
+        const sign = part.startsWith("-") ? -1 : 1;
+        const p = part.replace(/^[-+]/, "");
+
+        if (p.includes("d")) {
+          const [c, s] = p.toLowerCase().split("d").map(Number);
+          const rolls = Array.from({ length: c }, () => Math.floor(Math.random() * s) + 1);
+          const sum = rolls.reduce((a, b) => a + b, 0);
+          total += sign * sum;
+          detail.push(`${sign < 0 ? "-" : ""}${c}d${s}[${rolls.join(",")}]`);
+        } else {
+          total += sign * Number(p);
+          detail.push(part);
+        }
+      }
+
+      message.channel.send(
+        `🎲 ${content}\n結果: ${detail.join(" ")}\n合計: ${total}`
+      );
+    } catch {
+      message.channel.send("ダイス式を正しく入力してください。");
+    }
   }
 });
 
-/* =====================
+/* =========================
    ログイン
-===================== */
+========================= */
 client.login(process.env.DISCORD_TOKEN);
