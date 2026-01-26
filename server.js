@@ -2,13 +2,17 @@ const http = require("http");
 const Discord = require("discord.js");
 const client = new Discord.Client();
 
-// ===== Webサーバー（Railwayの死活監視用）=====
+/* =========================
+   Railway用 簡易Webサーバ
+========================= */
 http.createServer((req, res) => {
   res.writeHead(200, { "Content-Type": "text/plain" });
   res.end("Bot is running\n");
 }).listen(process.env.PORT || 3000);
 
-// ===== Bot起動 =====
+/* =========================
+   起動時
+========================= */
 client.on("ready", () => {
   console.log(`ログイン完了：${client.user.tag}`);
   client.user.setPresence({
@@ -16,39 +20,13 @@ client.on("ready", () => {
   });
 });
 
-// ===== メッセージ受信 =====
+/* =========================
+   メッセージ処理
+========================= */
 client.on("message", message => {
   if (message.author.bot) return;
 
   const content = message.content.trim();
-
-  // =========================
-  // 🎲 通常ダイス (1d6 / 1d3+1d4 / 1d6-1 など)
-  // =========================
-  if (/^[\ddD+\-\s]+$/.test(content) && /d/i.test(content)) {
-    const result = rollDiceExpression(content);
-    message.channel.send(result);
-    return;
-  }
-
-  // =========================
-  // 🎯 成功判定
-  // =========================
-  const successMatch = content.match(/^成功判定\s+(\d{1,3})$/);
-  if (successMatch) {
-    const target = parseInt(successMatch[1], 10);
-    const roll = Math.floor(Math.random() * 100) + 1;
-
-    let text = `🎯 成功判定（目標値 ${target}）\n出目：${roll}\n`;
-
-    if (roll <= 5) text += "🎉 クリティカル！";
-    else if (roll >= 95) text += "💥 ファンブル！";
-    else if (roll <= target) text += "✅ 成功";
-    else text += "❌ 失敗";
-
-    message.channel.send(text);
-    return;
-  }
 
 // =========================
 // 🗡 ダメージ表（拡張版）
@@ -176,9 +154,37 @@ if (content.startsWith("ダメージ")) {
   return;
 }
 
-  // =========================
-  // 🌀 短期（一時的）狂気表
-  // =========================
+  /* =========================
+     🎲 通常ダイス
+  ========================= */
+  if (/^[\ddD+\-\s]+$/.test(content) && /d/i.test(content)) {
+    const result = rollDiceExpression(content);
+    message.channel.send(result);
+    return;
+  }
+
+  /* =========================
+     🎯 成功判定
+  ========================= */
+  const successMatch = content.match(/^成功判定\s+(\d{1,3})$/);
+  if (successMatch) {
+    const target = parseInt(successMatch[1], 10);
+    const roll = Math.floor(Math.random() * 100) + 1;
+
+    let text = `🎯 成功判定（目標値 ${target}）\n出目：${roll}\n`;
+
+    if (roll <= 5) text += "🎉 クリティカル！";
+    else if (roll >= 95) text += "💥 ファンブル！";
+    else if (roll <= target) text += "✅ 成功";
+    else text += "❌ 失敗";
+
+    message.channel.send(text);
+    return;
+  }
+
+  /* =========================
+     🌀 短期（一時的）狂気
+  ========================= */
   if (/一時(的)?狂気|短期(的)?狂気/.test(content)) {
     const table = [
       "気絶あるいは金切り声の発作",
@@ -197,9 +203,9 @@ if (content.startsWith("ダメージ")) {
     return;
   }
 
-  // =========================
-  // 🌀 長期（不定）狂気表
-  // =========================
+  /* =========================
+     🌀 長期（不定）狂気
+  ========================= */
   if (/長期(的)?狂気|不定(の)?狂気/.test(content)) {
     const table = [
       "健忘症あるいは昏迷/緊張症",
@@ -219,12 +225,14 @@ if (content.startsWith("ダメージ")) {
   }
 });
 
-// ===== ダイス計算関数 =====
+/* =========================
+   🎲 ダイス計算関数
+========================= */
 function rollDiceExpression(expr) {
   let total = 0;
   let detail = [];
 
-  const parts = expr.replace(/\s+/g,"").split(/(?=[+-])/);
+  const parts = expr.replace(/\s+/g, "").split(/(?=[+-])/);
 
   for (let part of parts) {
     let sign = 1;
@@ -234,10 +242,10 @@ function rollDiceExpression(expr) {
       part = part.slice(1);
     }
 
-    const diceMatch = part.match(/(\d*)d(\d+)/i);
-    if (diceMatch) {
-      const count = parseInt(diceMatch[1] || "1", 10);
-      const sides = parseInt(diceMatch[2], 10);
+    const match = part.match(/(\d*)d(\d+)/i);
+    if (match) {
+      const count = parseInt(match[1] || "1", 10);
+      const sides = parseInt(match[2], 10);
       let rolls = [];
       for (let i = 0; i < count; i++) {
         const r = Math.floor(Math.random() * sides) + 1;
@@ -253,5 +261,7 @@ function rollDiceExpression(expr) {
   return `🎲 ${expr}\n${detail.join(" ")}\n合計：${total}`;
 }
 
-// ===== ログイン =====
+/* =========================
+   ログイン
+========================= */
 client.login(process.env.DISCORD_TOKEN);
