@@ -1,39 +1,48 @@
-const Discord = require("discord.js");
-const client = new Discord.Client();
+// =========================
+// server.js - TRPG Discord Bot (v14対応版)
+// =========================
+
+const { Client, GatewayIntentBits } = require("discord.js");
+
+// ★ Client作成時に必須のIntents を指定 ★
+const client = new Client({
+  intents: [
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.MessageContent
+  ]
+});
 
 // =========================
-// 起動確認
+// Bot 起動時
 // =========================
-client.on("ready", () => {
-  console.log("✅ Bot logged in as " + client.user.tag);
+client.once("ready", () => {
+  console.log(`✅ Bot logged in as ${client.user.tag}`);
   client.user.setActivity("TRPG Dice", { type: "PLAYING" });
 });
 
 // =========================
-// メッセージ受信
+// メッセージ受信処理
 // =========================
-client.on("message", message => {
+client.on("messageCreate", message => {
   if (message.author.bot) return;
 
   const content = message.content.trim();
 
-  // =========================
-  // 🎲 通常ダイス（1d6 / 1d6+1d4 / 1d100-5 等）
-  // =========================
+  // -------------------------
+  // 🎲 ダイス（1d6 / 2d10+3 等）
+  // -------------------------
   if (/^\d+d\d+/i.test(content)) {
     const result = rollDiceExpression(content);
-    if (result) {
-      message.channel.send(`🎲 ${content} → ${result}`);
-    }
+    message.channel.send(`🎲 ${content} → ${result}`);
     return;
   }
 
-  // =========================
+  // -------------------------
   // 🗡 ダメージ表
-  // =========================
+  // -------------------------
   if (content.startsWith("ダメージ")) {
     const weapon = content.replace(/^ダメージ\s*/,"");
-
     const damageTable = {
       "素手":"1D6-2","パンチ":"1D6-2","キック":"1D6-2","頭突き":"1D6-2",
       "体当たり":"1D6-2","投げ":"1D6-2","引き倒し":"1D6-2",
@@ -71,9 +80,9 @@ client.on("message", message => {
     return;
   }
 
-  // =========================
+  // -------------------------
   // 🧠 短期狂気表
-  // =========================
+  // -------------------------
   if (["一時的狂気","短期的狂気","短期狂気"].includes(content)) {
     const table = [
       "気絶あるいは金切り声",
@@ -92,9 +101,9 @@ client.on("message", message => {
     return;
   }
 
-  // =========================
+  // -------------------------
   // 🧠 長期狂気表
-  // =========================
+  // -------------------------
   if (["長期的狂気","長期狂気","不定の狂気","不定狂気"].includes(content)) {
     const table = [
       "健忘症／昏迷",
@@ -115,13 +124,11 @@ client.on("message", message => {
 });
 
 // =========================
-// 🎲 ダイス処理関数
+// 🎲 ダイス関数
 // =========================
 function rollDice(count, sides) {
   let total = 0;
-  for (let i=0;i<count;i++) {
-    total += Math.floor(Math.random()*sides)+1;
-  }
+  for (let i=0;i<count;i++) total += Math.floor(Math.random()*sides)+1;
   return total;
 }
 
@@ -140,6 +147,6 @@ function rollDiceExpression(expr) {
 }
 
 // =========================
-// 🔑 トークン
+// 🔑 Bot トークンをここに代入
 // =========================
 client.login("★ここにBotトークン★");
