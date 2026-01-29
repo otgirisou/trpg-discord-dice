@@ -18,7 +18,7 @@ client.once("ready", () => {
   });
 });
 
-// ===== ダイス＋四則演算処理 =====
+// ===== ダイス展開＋四則演算 =====
 function rollAndCalc(input) {
   let formula = input
     .replace(/×/g, "*")
@@ -40,7 +40,7 @@ function rollAndCalc(input) {
     return sum;
   });
 
-  // 安全チェック（数字・演算子・括弧のみ許可）
+  // 安全チェック（数字・演算子・括弧のみ）
   if (!/^[0-9+\-*/().]+$/.test(formula)) return null;
 
   const total = Function(`"use strict"; return (${formula})`)();
@@ -61,17 +61,27 @@ client.on("messageCreate", (message) => {
   if (message.author.bot) return;
   const msg = message.content.trim();
 
-  // ダイス＋四則演算
-  if (/[\dd×÷*/()+]/.test(msg) && msg.includes("d")) {
+  // 四則演算（ダイスあり・なし両対応）
+  if (/^[0-9dD+\-×÷*/().\s]+$/.test(msg)) {
     const r = rollAndCalc(msg);
     if (!r) return;
 
-    message.reply(
-      `🎲 ${msg}\n` +
-      `展開: ${r.detail.join(" / ")}\n` +
-      `計算式: ${r.formula}\n` +
-      `合計: **${r.total}**`
-    );
+    if (r.detail.length > 0) {
+      // ダイスあり
+      message.reply(
+        `🎲 ${msg}\n` +
+        `展開: ${r.detail.join(" / ")}\n` +
+        `計算式: ${r.formula}\n` +
+        `合計: **${r.total}**`
+      );
+    } else {
+      // 通常計算
+      message.reply(
+        `🧮 ${msg}\n` +
+        `計算式: ${r.formula}\n` +
+        `結果: **${r.total}**`
+      );
+    }
     return;
   }
 
