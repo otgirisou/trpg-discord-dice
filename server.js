@@ -65,9 +65,7 @@ client.on("messageCreate", (message) => {
     const result = rollAndCalc(msg);
     if (result === null) return;
 
-    message.reply(
-      `${msg}\n結果: ${result}`
-    );
+    message.reply(String(result));
     return;
   }
 
@@ -78,7 +76,7 @@ client.on("messageCreate", (message) => {
 
     const r = successCheck(target);
     message.reply(
-      `成功判定 ${target}\n出目: ${r.roll}\n結果: ${r.result}`
+      `出目: ${r.roll}\n結果: ${r.result}`
     );
   }
 });
