@@ -1,7 +1,6 @@
-// =========================
-// server.js - TRPG Calculator Bot
-// =========================
 const { Client, GatewayIntentBits } = require("discord.js");
+require("dotenv").config();
+const express = require("express");
 
 const client = new Client({
   intents: [
@@ -11,66 +10,69 @@ const client = new Client({
   ]
 });
 
+// ---- 起動ログ ----
 client.once("ready", () => {
-  console.log(`✅ Logged in as ${client.user.tag}`);
+  console.log(`Bot起動完了: ${client.user.tag}`);
 });
 
-// =========================
-// メッセージ処理
-// =========================
-client.on("messageCreate", message => {
-  if (message.author.bot) return;
-
-  const original = message.content.trim();
-  if (!original) return;
-
-  try {
-    const result = calculateExpression(original);
-    if (result !== null) {
-      message.channel.send(`${original} → ${result}`);
-    }
-  } catch (e) {
-    // 無反応でOK（壊れ防止）
-  }
-});
-
-// =========================
-// 計算処理
-// =========================
-function calculateExpression(input) {
-  let expr = input;
-
-  // r を無視（r1 → 1）
-  expr = expr.replace(/r/gi, "");
-
-  // × ÷ を JS 演算子へ
-  expr = expr.replace(/×/g, "*").replace(/÷/g, "/");
-
-  // ダイス展開（1d10 など）
-  expr = expr.replace(/(\d+)d(\d+)/gi, (_, c, s) => {
-    return rollDice(Number(c), Number(s));
-  });
-
-  // 許可される文字だけチェック
-  if (!/^[0-9+\-*/(). ]+$/.test(expr)) return null;
-
-  // 計算
-  const value = Function(`"use strict"; return (${expr})`)();
-  return value;
-}
-
-// =========================
-// ダイス
-// =========================
-function rollDice(count, sides) {
+// ---- ダイス計算 ----
+function rollDice(formula) {
+  const parts = formula.replace(/\s+/g, "").replace(/-/g, "+-").split("+");
   let total = 0;
-  for (let i = 0; i < count; i++) {
-    total += Math.floor(Math.random() * sides) + 1;
+  let details = [];
+
+  for (const part of parts) {
+    if (part.includes("d")) {
+      let [c, s] = part.split("d").map(Number);
+      for (let i = 0; i < c; i++) {
+        const r = Math.floor(Math.random() * s) + 1;
+        total += r;
+        details.push(r);
+      }
+    } else {
+      const n = Number(part);
+      if (!isNaN(n)) {
+        total += n;
+        details.push(n);
+      }
+    }
   }
-  return total;
+  return { total, details };
 }
 
-// =========================
-// Bot Token
-// =========================
-client.login("★ここにBotトークン★");
+// ---- 成功判定 ----
+function successCheck(target) {
+  const roll = Math.floor(Math.random() * 100) + 1;
+  let result = roll <= target ? "成功" : "失敗";
+  if (roll <= 5) result += "（クリティカル）";
+  if (roll >= 95) result += "（ファンブル）";
+  return { roll, result };
+}
+
+// ---- メッセージ処理 ----
+client.on("messageCreate", (message) => {
+  if (message.author.bot) return;
+  const msg = message.content.trim();
+
+  // ダイス
+  if (msg.startsWith("!roll ")) {
+    const f = msg.slice(6);
+    const r = rollDice(f);
+    message.reply(`🎲 ${f}\n出目: [${r.details.join(", ")}]\n合計: **${r.total}**`);
+  }
+
+  // 成功判定
+  if (msg.startsWith("!check ")) {
+    const target = parseInt(msg.slice(7));
+    const r = successCheck(target);
+    message.reply(`🎯 目標値:${target}\n出目:${r.roll}\n結果:${r.result}`);
+  }
+});
+
+// ---- RailwayダミーHTTP ----
+const app = express();
+app.get("/", (req, res) => res.send("Bot is running"));
+app.listen(process.env.PORT || 3000);
+
+// ---- Discordログイン ----
+client.login(process.env.DISCORD_TOKEN);
