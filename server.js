@@ -12,39 +12,38 @@ const client = new Client({
 // ===== Bot起動 =====
 client.once("ready", () => {
   console.log(`Bot起動完了: ${client.user.tag}`);
-  client.user.setPresence({
-    activities: [{ name: "TRPG", type: 0 }],
-    status: "online"
-  });
 });
 
-// ===== ダイス展開＋四則演算 =====
+// ===== ダイス展開＋計算 =====
 function rollAndCalc(input) {
-  let formula = input
-    .replace(/×/g, "*")
+  let original = input.trim();
+
+  let formula = original
+    .replace(/×|＊/g, "*")
     .replace(/÷/g, "/")
     .replace(/\s+/g, "");
 
-  const rollDetails = [];
+  const hasDice = /(\d+)d(\d+)/i.test(formula);
+  const hasSlash = /\//.test(formula);
+  const hasDivisionMark = /÷/.test(original);
+
+  // / はダイスがある時のみ許可（÷は例外）
+  if (hasSlash && !hasDice && !hasDivisionMark) return null;
 
   // ダイス展開
   formula = formula.replace(/(\d+)d(\d+)/gi, (_, c, s) => {
     let sum = 0;
-    const rolls = [];
     for (let i = 0; i < Number(c); i++) {
-      const r = Math.floor(Math.random() * Number(s)) + 1;
-      sum += r;
-      rolls.push(r);
+      sum += Math.floor(Math.random() * Number(s)) + 1;
     }
-    rollDetails.push(`${c}d${s}=[${rolls.join(", ")}]`);
     return sum;
   });
 
-  // 安全チェック（数字・演算子・括弧のみ）
-  if (!/^[0-9+\-*/().]+$/.test(formula)) return null;
+  // 安全チェック
+  if (!/^[0-9+\-*\/().]+$/.test(formula)) return null;
 
   const total = Function(`"use strict"; return (${formula})`)();
-  return { total, detail: rollDetails, formula };
+  return total;
 }
 
 // ===== 成功判定 =====
@@ -61,27 +60,14 @@ client.on("messageCreate", (message) => {
   if (message.author.bot) return;
   const msg = message.content.trim();
 
-  // 四則演算（ダイスあり・なし両対応）
-  if (/^[0-9dD+\-×÷*/().\s]+$/.test(msg)) {
-    const r = rollAndCalc(msg);
-    if (!r) return;
+  // 四則演算・ダイス
+  if (/^[0-9dD+\-×÷＊*/().\s]+$/.test(msg)) {
+    const result = rollAndCalc(msg);
+    if (result === null) return;
 
-    if (r.detail.length > 0) {
-      // ダイスあり
-      message.reply(
-        `🎲 ${msg}\n` +
-        `展開: ${r.detail.join(" / ")}\n` +
-        `計算式: ${r.formula}\n` +
-        `合計: **${r.total}**`
-      );
-    } else {
-      // 通常計算
-      message.reply(
-        `🧮 ${msg}\n` +
-        `計算式: ${r.formula}\n` +
-        `結果: **${r.total}**`
-      );
-    }
+    message.reply(
+      `${msg}\n結果: ${result}`
+    );
     return;
   }
 
@@ -89,9 +75,10 @@ client.on("messageCreate", (message) => {
   if (msg.startsWith("成功判定")) {
     const target = parseInt(msg.replace("成功判定", "").trim(), 10);
     if (isNaN(target)) return;
+
     const r = successCheck(target);
     message.reply(
-      `🎯 目標値:${target}\n出目:${r.roll}\n結果:${r.result}`
+      `成功判定 ${target}\n出目: ${r.roll}\n結果: ${r.result}`
     );
   }
 });
