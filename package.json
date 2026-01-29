@@ -1,13 +1,9 @@
 {
-  "name": "trpg-discord-dice",
+  "name": "trpg-discord-bot",
   "version": "1.0.0",
   "main": "server.js",
-  "type": "commonjs",
   "scripts": {
     "start": "node server.js"
-  },
-  "engines": {
-    "node": ">=18.0.0"
   },
   "dependencies": {
     "discord.js": "^14.14.1"
