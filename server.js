@@ -84,4 +84,4 @@ app.get("/", (req, res) => res.send("Bot is running"));
 app.listen(process.env.PORT || 3000);
 
 // ===== Discordログイン =====
-client.login(process.env.DISCORD_TOKEN) 
+client.login(process.env.DISCORD_TOKEN);
