@@ -1,5 +1,4 @@
 const { Client, GatewayIntentBits } = require("discord.js");
-const express = require("express");
 
 // ===== Discord Client =====
 const client = new Client({
@@ -77,11 +76,6 @@ client.on("messageCreate", (message) => {
     );
   }
 });
-
-// ===== Railway用ダミーHTTP =====
-const app = express();
-app.get("/", (req, res) => res.send("Bot is running"));
-app.listen(process.env.PORT || 3000);
 
 // ===== Discordログイン =====
 client.login(process.env.DISCORD_TOKEN);
