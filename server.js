@@ -18,29 +18,33 @@ client.once("ready", () => {
   });
 });
 
-// ===== ダイス計算 =====
-function rollDice(formula) {
-  const parts = formula.replace(/\s+/g, "").replace(/-/g, "+-").split("+");
-  let total = 0;
-  let details = [];
+// ===== ダイス＋四則演算処理 =====
+function rollAndCalc(input) {
+  let formula = input
+    .replace(/×/g, "*")
+    .replace(/÷/g, "/")
+    .replace(/\s+/g, "");
 
-  for (const part of parts) {
-    if (part.includes("d")) {
-      let [c, s] = part.split("d").map(Number);
-      for (let i = 0; i < c; i++) {
-        const r = Math.floor(Math.random() * s) + 1;
-        total += r;
-        details.push(r);
-      }
-    } else {
-      const n = Number(part);
-      if (!isNaN(n)) {
-        total += n;
-        details.push(n);
-      }
+  const rollDetails = [];
+
+  // ダイス展開
+  formula = formula.replace(/(\d+)d(\d+)/gi, (_, c, s) => {
+    let sum = 0;
+    const rolls = [];
+    for (let i = 0; i < Number(c); i++) {
+      const r = Math.floor(Math.random() * Number(s)) + 1;
+      sum += r;
+      rolls.push(r);
     }
-  }
-  return { total, details };
+    rollDetails.push(`${c}d${s}=[${rolls.join(", ")}]`);
+    return sum;
+  });
+
+  // 安全チェック（数字・演算子・括弧のみ許可）
+  if (!/^[0-9+\-*/().]+$/.test(formula)) return null;
+
+  const total = Function(`"use strict"; return (${formula})`)();
+  return { total, detail: rollDetails, formula };
 }
 
 // ===== 成功判定 =====
@@ -57,11 +61,16 @@ client.on("messageCreate", (message) => {
   if (message.author.bot) return;
   const msg = message.content.trim();
 
-  // ダイスロール
-  if (/^\d+d\d+([+-]\d+d?\d+)*$/i.test(msg)) {
-    const r = rollDice(msg);
+  // ダイス＋四則演算
+  if (/[\dd×÷*/()+]/.test(msg) && msg.includes("d")) {
+    const r = rollAndCalc(msg);
+    if (!r) return;
+
     message.reply(
-      `🎲 ${msg}\n出目: [${r.details.join(", ")}]\n合計: **${r.total}**`
+      `🎲 ${msg}\n` +
+      `展開: ${r.detail.join(" / ")}\n` +
+      `計算式: ${r.formula}\n` +
+      `合計: **${r.total}**`
     );
     return;
   }
