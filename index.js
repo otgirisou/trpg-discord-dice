@@ -1,4 +1,3 @@
-console.log("★★ Railway更新確認 ★★");
 const { Client, GatewayIntentBits } = require("discord.js");
 
 // ===== Discord Client =====
@@ -74,9 +73,10 @@ client.on("messageCreate", (message) => {
 
   const msg = message.content.trim();
 
-  // ===== よしよし機能（部分一致）=====
-  if (msg.includes("ダイスボットよしよし")) {
-    message.reply(getYoshiyoshi());
+  // ===== よしよし機能（完全一致＋空白無視）=====
+  const normalized = msg.replace(/\s+/g, "");
+  if (normalized === "ダイスボットよしよし") {
+    message.reply(getYoshiyoshi()).catch(console.error);
     return;
   }
 
