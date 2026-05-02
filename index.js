@@ -9,23 +9,36 @@ const client = new Client({
   ]
 });
 
+// ===== エラー防止（最重要）=====
+process.on("uncaughtException", err => {
+  console.error("❌ 未処理エラー:", err);
+});
+process.on("unhandledRejection", err => {
+  console.error("❌ Promiseエラー:", err);
+});
+
 // ===== Bot起動 =====
 client.once("ready", () => {
   console.log(`Bot起動完了: ${client.user.tag}`);
 });
 
-// ===== ダイス展開＋計算 =====
-function rollAndCalc(input) {
-  let original = input.trim();
+// ===== 安全返信 =====
+function safeReply(message, content) {
+  message.reply(content).catch(err => {
+    console.error("返信エラー:", err);
+  });
+}
 
-  let formula = original
+// ===== ダイス =====
+function rollAndCalc(input) {
+  let formula = input
     .replace(/×|＊/g, "*")
     .replace(/÷/g, "/")
     .replace(/\s+/g, "");
 
   const hasDice = /(\d+)d(\d+)/i.test(formula);
   const hasSlash = /\//.test(formula);
-  const hasDivisionMark = /÷/.test(original);
+  const hasDivisionMark = /÷/.test(input);
 
   if (hasSlash && !hasDice && !hasDivisionMark) return null;
 
@@ -69,39 +82,44 @@ function getYoshiyoshi() {
 
 // ===== メッセージ処理 =====
 client.on("messageCreate", (message) => {
-  if (message.author.bot) return;
+  try {
+    if (message.author.bot) return;
 
-  const msg = message.content.trim();
+    const msg = message.content.trim();
 
-  // ===== よしよし機能（完全一致＋空白無視）=====
-  const normalized = msg.replace(/\s+/g, "");
-  if (normalized === "ダイスボットよしよし") {
-    message.reply(getYoshiyoshi()).catch(console.error);
-    return;
-  }
+    // よしよし（厳密）
+    const normalized = msg.replace(/\s+/g, "");
+    if (normalized === "ダイスボットよしよし") {
+      safeReply(message, getYoshiyoshi());
+      return;
+    }
 
-  // ===== 数字のみは無視 =====
-  if (/^\d+(\.\d+)?$/.test(msg)) return;
+    // 数字のみ無視
+    if (/^\d+(\.\d+)?$/.test(msg)) return;
 
-  // ===== 四則演算・ダイス =====
-  if (
-    /^[0-9dD+\-×÷＊*/().\s]+$/.test(msg) &&
-    /[dD+\-×÷＊*/]/.test(msg)
-  ) {
-    const result = rollAndCalc(msg);
-    if (result === null) return;
+    // ダイス・計算
+    if (
+      /^[0-9dD+\-×÷＊*/().\s]+$/.test(msg) &&
+      /[dD+\-×÷＊*/]/.test(msg)
+    ) {
+      const result = rollAndCalc(msg);
+      if (result === null) return;
 
-    message.reply(String(result));
-    return;
-  }
+      safeReply(message, String(result));
+      return;
+    }
 
-  // ===== 成功判定 =====
-  if (msg.startsWith("成功判定")) {
-    const target = parseInt(msg.replace("成功判定", "").trim(), 10);
-    if (isNaN(target)) return;
+    // 成功判定
+    if (msg.startsWith("成功判定")) {
+      const target = parseInt(msg.replace("成功判定", "").trim(), 10);
+      if (isNaN(target)) return;
 
-    const r = successCheck(target);
-    message.reply(`出目: ${r.roll}\n結果: ${r.result}`);
+      const r = successCheck(target);
+      safeReply(message, `出目: ${r.roll}\n結果: ${r.result}`);
+    }
+
+  } catch (err) {
+    console.error("処理エラー:", err);
   }
 });
 
