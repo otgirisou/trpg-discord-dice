@@ -60,8 +60,11 @@ client.on("messageCreate", (message) => {
   if (message.author.bot) return;
   const msg = message.content.trim();
 
-  // 四則演算・ダイス
-  if (/^[0-9dD+\-×÷＊*/().\s]+$/.test(msg)) {
+  // ===== 四則演算・ダイス =====
+  if (
+    /^[0-9dD+\-×÷＊*/().\s]+$/.test(msg) &&
+    /[dD+\-×÷＊*/]/.test(msg) // ★ 演算子 or d を含む場合のみ
+  ) {
     const result = rollAndCalc(msg);
     if (result === null) return;
 
@@ -69,15 +72,13 @@ client.on("messageCreate", (message) => {
     return;
   }
 
-  // 成功判定
+  // ===== 成功判定 =====
   if (msg.startsWith("成功判定")) {
     const target = parseInt(msg.replace("成功判定", "").trim(), 10);
     if (isNaN(target)) return;
 
     const r = successCheck(target);
-    message.reply(
-      `出目: ${r.roll}\n結果: ${r.result}`
-    );
+    message.reply(`出目: ${r.roll}\n結果: ${r.result}`);
   }
 });
 
