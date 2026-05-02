@@ -9,7 +9,7 @@ const client = new Client({
   ]
 });
 
-// ===== エラー防止（最重要）=====
+// ===== エラー防止 =====
 process.on("uncaughtException", err => {
   console.error("❌ 未処理エラー:", err);
 });
@@ -87,17 +87,21 @@ client.on("messageCreate", (message) => {
 
     const msg = message.content.trim();
 
-    // よしよし（厳密）
+    // ===== よしよし機能（安定版）=====
     const normalized = msg.replace(/\s+/g, "");
-    if (normalized === "ダイスボットよしよし") {
+
+    if (
+      normalized.includes("ダイスボット") &&
+      normalized.includes("よしよし")
+    ) {
       safeReply(message, getYoshiyoshi());
       return;
     }
 
-    // 数字のみ無視
+    // ===== 数字のみ無視 =====
     if (/^\d+(\.\d+)?$/.test(msg)) return;
 
-    // ダイス・計算
+    // ===== ダイス・計算 =====
     if (
       /^[0-9dD+\-×÷＊*/().\s]+$/.test(msg) &&
       /[dD+\-×÷＊*/]/.test(msg)
@@ -109,7 +113,7 @@ client.on("messageCreate", (message) => {
       return;
     }
 
-    // 成功判定
+    // ===== 成功判定 =====
     if (msg.startsWith("成功判定")) {
       const target = parseInt(msg.replace("成功判定", "").trim(), 10);
       if (isNaN(target)) return;
