@@ -39,8 +39,11 @@ function rollAndCalc(input) {
 
   if (!/^[0-9+\-*\/().]+$/.test(formula)) return null;
 
-  const total = Function(`"use strict"; return (${formula})`)();
-  return total;
+  try {
+    return Function(`"use strict"; return (${formula})`)();
+  } catch {
+    return null;
+  }
 }
 
 // ===== 成功判定 =====
@@ -52,13 +55,31 @@ function successCheck(target) {
   return { roll, result };
 }
 
+// ===== よしよし用ランダム =====
+function getYoshiyoshi() {
+  const list = [
+    "(>⩊<)",
+    "(ˆ. ̫ .ˆ)",
+    "ฅ^. ̫.^ฅ",
+    "( ˶`﹀´˵ )",
+    "(◦`꒳´◦)"
+  ];
+  return list[Math.floor(Math.random() * list.length)];
+}
+
 // ===== メッセージ処理 =====
 client.on("messageCreate", (message) => {
   if (message.author.bot) return;
 
   const msg = message.content.trim();
 
-  // ===== 数字のみは完全無視 =====
+  // ===== よしよし機能 =====
+  if (msg === "ダイスボットよしよし") {
+    message.reply(getYoshiyoshi());
+    return;
+  }
+
+  // ===== 数字のみは無視 =====
   if (/^\d+(\.\d+)?$/.test(msg)) return;
 
   // ===== 四則演算・ダイス =====
@@ -83,5 +104,5 @@ client.on("messageCreate", (message) => {
   }
 });
 
-// ===== Discordログイン =====
+// ===== ログイン =====
 client.login(process.env.DISCORD_TOKEN);
