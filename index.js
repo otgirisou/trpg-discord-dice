@@ -1,3 +1,4 @@
+throw new Error("ここが動いてるかテスト");
 const { Client, GatewayIntentBits } = require("discord.js");
 
 // ===== 起動確認 =====
