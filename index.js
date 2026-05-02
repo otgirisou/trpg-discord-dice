@@ -55,7 +55,7 @@ function successCheck(target) {
   return { roll, result };
 }
 
-// ===== よしよし用ランダム =====
+// ===== よしよし =====
 function getYoshiyoshi() {
   const list = [
     "(>⩊<)",
@@ -73,8 +73,8 @@ client.on("messageCreate", (message) => {
 
   const msg = message.content.trim();
 
-  // ===== よしよし機能 =====
-  if (msg === "ダイスボットよしよし") {
+  // ===== よしよし機能（部分一致）=====
+  if (msg.includes("ダイスボットよしよし")) {
     message.reply(getYoshiyoshi());
     return;
   }
