@@ -58,12 +58,16 @@ function successCheck(target) {
 // ===== メッセージ処理 =====
 client.on("messageCreate", (message) => {
   if (message.author.bot) return;
+
   const msg = message.content.trim();
+
+  // ===== 数字のみは完全無視 =====
+  if (/^\d+(\.\d+)?$/.test(msg)) return;
 
   // ===== 四則演算・ダイス =====
   if (
     /^[0-9dD+\-×÷＊*/().\s]+$/.test(msg) &&
-    /[dD+\-×÷＊*/]/.test(msg) // ★ 演算子 or d を含む場合のみ
+    /[dD+\-×÷＊*/]/.test(msg)
   ) {
     const result = rollAndCalc(msg);
     if (result === null) return;
