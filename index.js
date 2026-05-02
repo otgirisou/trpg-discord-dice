@@ -1,4 +1,3 @@
-throw new Error("ここが動いてるかテスト");
 const { Client, GatewayIntentBits } = require("discord.js");
 
 // ===== 起動確認 =====
@@ -91,13 +90,17 @@ client.on("messageCreate", (message) => {
 
     const msg = message.content.trim();
 
-    // ===== デバッグ（受信内容確認）=====
+    // ===== デバッグ =====
     console.log("受信:", msg);
 
-    // ===== よしよし（最優先・完全一致＋空白無視）=====
-    const normalized = msg.replace(/\s+/g, "");
+    // ===== よしよし（最終版：完全対応）=====
+    const normalized = msg
+      .normalize("NFKC")
+      .replace(/\s+/g, "")
+      .replace(/[！!。．\.]+$/, "");
+
     if (normalized === "ダイスボットよしよし") {
-      console.log("よしよし発動");
+      console.log("よしよし発動:", normalized);
       safeReply(message, getYoshiyoshi());
       return;
     }
