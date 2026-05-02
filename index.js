@@ -1,3 +1,4 @@
+console.log("★★ 最新コード確認 ★★");
 client.on("messageCreate", (message) => {
   try {
     if (message.author.bot) return;
