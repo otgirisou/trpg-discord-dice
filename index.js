@@ -27,10 +27,8 @@ function rollAndCalc(input) {
   const hasSlash = /\//.test(formula);
   const hasDivisionMark = /÷/.test(original);
 
-  // / はダイスがある時のみ許可（÷は例外）
   if (hasSlash && !hasDice && !hasDivisionMark) return null;
 
-  // ダイス展開
   formula = formula.replace(/(\d+)d(\d+)/gi, (_, c, s) => {
     let sum = 0;
     for (let i = 0; i < Number(c); i++) {
@@ -39,7 +37,6 @@ function rollAndCalc(input) {
     return sum;
   });
 
-  // 安全チェック
   if (!/^[0-9+\-*\/().]+$/.test(formula)) return null;
 
   const total = Function(`"use strict"; return (${formula})`)();
