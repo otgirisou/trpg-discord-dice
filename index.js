@@ -1,4 +1,4 @@
-console.log("★ 新コード起動確認");
+console.log("★★ Railway更新確認 ★★");
 const { Client, GatewayIntentBits } = require("discord.js");
 
 // ===== Discord Client =====
