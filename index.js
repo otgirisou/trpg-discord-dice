@@ -1,3 +1,4 @@
+console.log("★ 新コード起動確認");
 const { Client, GatewayIntentBits } = require("discord.js");
 
 // ===== Discord Client =====
