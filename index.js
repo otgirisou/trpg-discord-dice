@@ -1,7 +1,7 @@
 const { Client, GatewayIntentBits } = require("discord.js");
 
 // ===== 起動確認 =====
-console.log("★★ 最新コード確認 ★★");
+console.log("★★ 神！コード確認 ★★");
 
 // ===== Discord Client =====
 const client = new Client({
