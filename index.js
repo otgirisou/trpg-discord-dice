@@ -27,9 +27,7 @@ client.once("ready", () => {
 
 // ===== 安全返信 =====
 function safeReply(message, content) {
-  message.reply(content).catch(err => {
-    console.error("返信エラー:", err);
-  });
+  message.reply(content).catch(console.error);
 }
 
 // ===== ダイス =====
@@ -78,42 +76,21 @@ function getYoshiyoshi() {
     "(ˆ. ̫ .ˆ)",
     "ฅ^. ̫.^ฅ",
     "( ˶`﹀´˵ )",
-    "(◦`꒳´◦)"
+    "(◦`꒳´◦)",
     "ｰ̀⩊ｰ́",
     "(˶ˊᵕˋ˵)",
-    "(๑°ㅁ°๑)",
+    "(๑°ㅁ°๑)"
   ];
   return list[Math.floor(Math.random() * list.length)];
 }
 
-// ===== メッセージ処理 =====
-client.on("messageCreate", (message) => {
-  try {
-    if (message.author.bot) return;
-
-    const msg = message.content.trim();
-
-    // ===== デバッグ =====
-    console.log("受信:", msg);
-
-    // ===== よしよし（最終版：完全対応）=====
-    const normalized = msg
-      .normalize("NFKC")
-      .replace(/\s+/g, "")
-      .replace(/[！!。．\.]+$/, "");
-
-    if (normalized === "ダイスボットよしよし") {
-      console.log("よしよし発動:", normalized);
-      safeReply(message, getYoshiyoshi());
-      return;
-    }
-    // ===== もちもち =====
-function getYoshiyoshi() {
+// ===== もちもち =====
+function getMochimochi() {
   const list = [
     "(ﾉ)•ω•(ヾ)",
     "(っ•ω•⊂)",
-    "(⊃)•  ̫ •(⊂)",
-    "(ﾉ)`∨´(ヾ)",
+    "(⊃)• ̫ •(⊂)",
+    "(ﾉ)`∨´(ヾ)"
   ];
   return list[Math.floor(Math.random() * list.length)];
 }
@@ -125,18 +102,22 @@ client.on("messageCreate", (message) => {
 
     const msg = message.content.trim();
 
-    // ===== デバッグ =====
     console.log("受信:", msg);
 
-    // ===== よしよし（最終版：完全対応）=====
     const normalized = msg
       .normalize("NFKC")
       .replace(/\s+/g, "")
       .replace(/[！!。．\.]+$/, "");
 
-    if (normalized === "ダイスボットもちもち") {
-      console.log("もちもち発動:", normalized);
+    // ===== よしよし =====
+    if (normalized === "ダイスボットよしよし") {
       safeReply(message, getYoshiyoshi());
+      return;
+    }
+
+    // ===== もちもち =====
+    if (normalized === "ダイスボットもちもち") {
+      safeReply(message, getMochimochi());
       return;
     }
 
