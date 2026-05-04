@@ -1,5 +1,5 @@
 {
-  "name": "discord-bot",
+  "name": "trpg-discord-bot",
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
