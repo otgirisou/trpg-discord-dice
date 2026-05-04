@@ -79,6 +79,9 @@ function getYoshiyoshi() {
     "ฅ^. ̫.^ฅ",
     "( ˶`﹀´˵ )",
     "(◦`꒳´◦)"
+    "ｰ̀⩊ｰ́",
+    "(˶ˊᵕˋ˵)",
+    "(๑°ㅁ°๑)",
   ];
   return list[Math.floor(Math.random() * list.length)];
 }
@@ -101,6 +104,38 @@ client.on("messageCreate", (message) => {
 
     if (normalized === "ダイスボットよしよし") {
       console.log("よしよし発動:", normalized);
+      safeReply(message, getYoshiyoshi());
+      return;
+    }
+    // ===== もちもち =====
+function getYoshiyoshi() {
+  const list = [
+    "(ﾉ)•ω•(ヾ)",
+    "(っ•ω•⊂)",
+    "(⊃)•  ̫ •(⊂)",
+    "(ﾉ)`∨´(ヾ)",
+  ];
+  return list[Math.floor(Math.random() * list.length)];
+}
+
+// ===== メッセージ処理 =====
+client.on("messageCreate", (message) => {
+  try {
+    if (message.author.bot) return;
+
+    const msg = message.content.trim();
+
+    // ===== デバッグ =====
+    console.log("受信:", msg);
+
+    // ===== よしよし（最終版：完全対応）=====
+    const normalized = msg
+      .normalize("NFKC")
+      .replace(/\s+/g, "")
+      .replace(/[！!。．\.]+$/, "");
+
+    if (normalized === "ダイスボットもちもち") {
+      console.log("もちもち発動:", normalized);
       safeReply(message, getYoshiyoshi());
       return;
     }
