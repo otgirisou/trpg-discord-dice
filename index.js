@@ -1,4 +1,4 @@
-const { Client, GatewayIntentBits } = require(“discord.js”);
+const { Client, GatewayIntentBits } = require("discord.js");
 
 // ===== 起動確認 =====
 console.log(“★★ 神！コード確認 ★★”);
