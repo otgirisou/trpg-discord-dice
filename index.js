@@ -16,7 +16,6 @@ const client = new Client({
 process.on("uncaughtException", err => {
   console.error("❌ 未処理エラー:", err);
 });
-
 process.on("unhandledRejection", err => {
   console.error("❌ Promiseエラー:", err);
 });
@@ -42,21 +41,16 @@ function rollAndCalc(input) {
   const hasSlash = /\//.test(formula);
   const hasDivisionMark = /÷/.test(input);
 
-  // / はダイスがある時のみ許可（÷は例外）
   if (hasSlash && !hasDice && !hasDivisionMark) return null;
 
-  // ダイス展開
   formula = formula.replace(/(\d+)d(\d+)/gi, (_, c, s) => {
     let sum = 0;
-
     for (let i = 0; i < Number(c); i++) {
       sum += Math.floor(Math.random() * Number(s)) + 1;
     }
-
     return sum;
   });
 
-  // 安全チェック
   if (!/^[0-9+\-*\/().]+$/.test(formula)) return null;
 
   try {
@@ -69,12 +63,9 @@ function rollAndCalc(input) {
 // ===== 成功判定 =====
 function successCheck(target) {
   const roll = Math.floor(Math.random() * 100) + 1;
-
   let result = roll <= target ? "成功" : "失敗";
-
   if (roll <= 5) result += "（クリティカル）";
   if (roll >= 95) result += "（ファンブル）";
-
   return { roll, result };
 }
 
@@ -90,7 +81,6 @@ function getYoshiyoshi() {
     "(˶ˊᵕˋ˵)",
     "(๑°ㅁ°๑)"
   ];
-
   return list[Math.floor(Math.random() * list.length)];
 }
 
@@ -102,7 +92,6 @@ function getMochimochi() {
     "(⊃)• ̫ •(⊂)",
     "(ﾉ)`∨´(ヾ)"
   ];
-
   return list[Math.floor(Math.random() * list.length)];
 }
 
@@ -112,20 +101,6 @@ client.on("messageCreate", (message) => {
     if (message.author.bot) return;
 
     const msg = message.content.trim();
-
-    // ===== 赤い特例 =====
-    const senderName =
-      message.member?.displayName || message.author.username;
-
-    const normalizedMsg = msg.replace(/\s+/g, "").toLowerCase();
-
-    if (
-      senderName.includes("赤い") &&
-      (normalizedMsg === "1d100" || normalizedMsg === "1d1000")
-    ) {
-      safeReply(message, "100");
-      return;
-    }
 
     console.log("受信:", msg);
 
@@ -155,7 +130,6 @@ client.on("messageCreate", (message) => {
       /[dD+\-×÷＊*/]/.test(msg)
     ) {
       const result = rollAndCalc(msg);
-
       if (result === null) return;
 
       safeReply(message, String(result));
@@ -164,21 +138,11 @@ client.on("messageCreate", (message) => {
 
     // ===== 成功判定 =====
     if (msg.startsWith("成功判定")) {
-      const target = parseInt(
-        msg.replace("成功判定", "").trim(),
-        10
-      );
-
+      const target = parseInt(msg.replace("成功判定", "").trim(), 10);
       if (isNaN(target)) return;
 
       const r = successCheck(target);
-
-      safeReply(
-        message,
-        `出目: ${r.roll}\n結果: ${r.result}`
-      );
-
-      return;
+      safeReply(message, `出目: ${r.roll}\n結果: ${r.result}`);
     }
 
   } catch (err) {
